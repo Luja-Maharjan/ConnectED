@@ -5,6 +5,8 @@ import Profile from "./pages/Profile";
 import SignIn from "./pages/SignIn";
 import SignOut from "./pages/SignOut";
 import SignUp from "./pages/SignUp";
+import SubmitComplaint from "./pages/SubmitComplaint";
+import AdminDashboard from "./pages/AdminDashboard";
 import Header from "./components/Header";
 
 export default function App() {
@@ -18,6 +20,8 @@ export default function App() {
         <Route path="sign-in" element={<SignIn />} />
         <Route path="sign-out" element={<SignOut />} />
         <Route path="sign-up" element={<SignUp />} />
+        <Route path="submit-complaint" element={<SubmitComplaint />} />
+        <Route path="admin-dashboard" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );

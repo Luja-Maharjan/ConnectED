@@ -3,7 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 
 
 export default function SignUp() {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    role: 'student' // Default to student
+  });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -23,12 +25,13 @@ export default function SignUp() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
+        credentials: "include",
       });
 
       const data = await res.json();
-      if (data.success === false) {
+      if (data.success === false || !res.ok) {
         setLoading(false);
-        setError(data.message);
+        setError(data.message || "Failed to create account");
         return;
       }
       setLoading(false);
@@ -51,6 +54,7 @@ export default function SignUp() {
           className="border p-3 rounded-lg"
           id="username"
           onChange={handleChange}
+          required
         />
 
         <input
@@ -59,6 +63,7 @@ export default function SignUp() {
           className="border p-3 rounded-lg"
           id="email"
           onChange={handleChange}
+          required
         />
 
         <input
@@ -67,12 +72,27 @@ export default function SignUp() {
           className="border p-3 rounded-lg"
           id="password"
           onChange={handleChange}
+          required
         />
+
+        <div>
+          <label className="block text-sm font-medium mb-2">Account Type</label>
+          <select
+            className="border p-3 rounded-lg w-full"
+            id="role"
+            value={formData.role || 'student'}
+            onChange={handleChange}
+            required
+          >
+            <option value="student">Student</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95"
+          className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-50"
         >
           {loading ? "loading..." : "Sign Up"}
         </button>

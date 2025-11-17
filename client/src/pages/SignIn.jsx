@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function SignIn() {
   const [formData, setFormData] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { setCurrentUser } = useAuth();
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -22,16 +24,18 @@ export default function SignIn() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
+        credentials: "include",
       });
 
       const data = await res.json();
-      if (data.success === false) {
+      if (!res.ok || data.success === false) {
         setLoading(false);
-        setError(data.message);
+        setError(data.message || "Failed to sign in");
         return;
       }
       setLoading(false);
       setError(null);
+      setCurrentUser(data.user);
       navigate("/");
     } catch (error) {
       setLoading(false);
@@ -50,6 +54,7 @@ export default function SignIn() {
           className="border p-3 rounded-lg"
           id="email"
           onChange={handleChange}
+          required
         />
 
         <input
@@ -58,6 +63,7 @@ export default function SignIn() {
           className="border p-3 rounded-lg"
           id="password"
           onChange={handleChange}
+          required
         />
 
         <button
