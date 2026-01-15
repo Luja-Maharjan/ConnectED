@@ -48,12 +48,14 @@ export default function Home() {
           A safe space to submit feedback, report issues anonymously, and track progress.
         </p>
         <div className="flex flex-wrap gap-4 justify-center">
-          <Link
-            to="/submit-complaint"
-            className="bg-slate-700 text-white px-6 py-2 rounded-lg hover:opacity-95"
-          >
-            Submit Complaint
-          </Link>
+          {currentUser?.role !== "admin" && currentUser?.role !== "teacher" && (
+            <Link
+              to="/submit-complaint"
+              className="bg-slate-700 text-white px-6 py-2 rounded-lg hover:opacity-95"
+            >
+              Submit Complaint
+            </Link>
+          )}
           {!currentUser && (
             <Link
               to="/sign-in"

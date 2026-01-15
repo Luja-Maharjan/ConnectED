@@ -1,31 +1,73 @@
 import Complaint from "../models/complaint.model.js";
 import { errorHandler } from "../utils/error.js";
 
-// Create a new complaint (anonymous or with user ID)
+// Priority scoring algorithm
+const calculatePriorityScore = (category, urgency, createdAt) => {
+    let score = 0;
+    
+    // Category priority: bullying > other categories > infrastructure (facility)
+    const categoryWeights = {
+        'bullying': 100,
+        'academic': 30,
+        'staff': 30,
+        'other': 20,
+        'facility': 10, // Infrastructure has lowest priority
+    };
+    score += categoryWeights[category] || 20;
+    
+    // Urgency level weights
+    const urgencyWeights = {
+        'critical': 50,
+        'high': 30,
+        'medium': 15,
+        'low': 5,
+    };
+    score += urgencyWeights[urgency] || 15;
+    
+    // Time pending: older complaints get higher priority
+    // Calculate days since creation (in milliseconds)
+    const now = new Date();
+    const daysPending = (now - createdAt) / (1000 * 60 * 60 * 24); // Convert to days
+    // Add 1 point per day pending (max 30 days = 30 points)
+    score += Math.min(daysPending, 30);
+    
+    return Math.round(score);
+};
+
+// Create a new complaint (requires login)
 export const createComplaint = async (req, res, next) => {
     try {
-        const { title, description, category, isAnonymous } = req.body;
+        // Require authentication
+        if (!req.user) {
+            return next(errorHandler(401, 'You must be logged in to submit a complaint'));
+        }
+        
+        const { title, description, category, urgency, isAnonymous } = req.body;
         
         if (!title || !description) {
             return next(errorHandler(400, 'Title and description are required'));
+        }
+        
+        if (!urgency || !['low', 'medium', 'high', 'critical'].includes(urgency)) {
+            return next(errorHandler(400, 'Valid urgency level is required (low, medium, high, critical)'));
         }
         
         const complaintData = {
             title,
             description,
             category: category || 'other',
-            isAnonymous: isAnonymous !== false, // Default to true
+            urgency: urgency || 'medium',
+            isAnonymous: isAnonymous === true, // Default to false for logged-in users
+            userId: req.user.id, // Always include userId since login is required
         };
 
-        // If user is logged in and not anonymous, include userId
-        // Check if token exists in cookies to determine if user is logged in
-        if (req.user && isAnonymous === false) {
-            complaintData.userId = req.user.id;
-            complaintData.isAnonymous = false;
-        } else {
-            // Anonymous complaint - no userId
-            complaintData.isAnonymous = true;
-        }
+        // Calculate priority score
+        const createdAt = new Date();
+        complaintData.priorityScore = calculatePriorityScore(
+            complaintData.category,
+            complaintData.urgency,
+            createdAt
+        );
 
         const newComplaint = new Complaint(complaintData);
         await newComplaint.save();
@@ -40,13 +82,33 @@ export const createComplaint = async (req, res, next) => {
     }
 };
 
-// Get all complaints (Admin only)
+// Get all complaints (Admin only) - sorted by priority
 export const getAllComplaints = async (req, res, next) => {
     try {
         const complaints = await Complaint.find()
             .populate('userId', 'username email role')
-            .populate('updates.updatedBy', 'username role')
-            .sort({ createdAt: -1 });
+            .populate('updates.updatedBy', 'username role');
+        
+        // Recalculate priority scores for all pending/in-progress complaints
+        // (to account for time pending changes)
+        for (const complaint of complaints) {
+            if (complaint.status === 'pending' || complaint.status === 'in-progress') {
+                complaint.priorityScore = calculatePriorityScore(
+                    complaint.category,
+                    complaint.urgency,
+                    complaint.createdAt
+                );
+                await complaint.save();
+            }
+        }
+        
+        // Sort by priority score (highest first), then by creation date
+        complaints.sort((a, b) => {
+            if (b.priorityScore !== a.priorityScore) {
+                return b.priorityScore - a.priorityScore;
+            }
+            return new Date(a.createdAt) - new Date(b.createdAt); // Older first if same priority
+        });
         
         res.status(200).json({
             success: true,

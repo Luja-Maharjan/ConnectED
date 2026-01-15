@@ -8,19 +8,22 @@ export default function SubmitComplaint() {
     title: "",
     description: "",
     category: "other",
-    isAnonymous: currentUser ? false : true,
+    urgency: "medium",
+    isAnonymous: false,
   });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Redirect to login if not authenticated, or redirect admin/teacher
   useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      isAnonymous: currentUser ? false : true,
-    }));
-  }, [currentUser]);
+    if (!currentUser) {
+      navigate("/sign-in");
+    } else if (currentUser.role === "admin" || currentUser.role === "teacher") {
+      navigate("/");
+    }
+  }, [currentUser, navigate]);
 
   const handleChange = (e) => {
     if (e.target.type === "checkbox") {
@@ -66,7 +69,8 @@ export default function SubmitComplaint() {
         title: "",
         description: "",
         category: "other",
-        isAnonymous: currentUser ? false : true,
+        urgency: "medium",
+        isAnonymous: false,
       });
 
       // Redirect after 2 seconds
@@ -79,14 +83,24 @@ export default function SubmitComplaint() {
     }
   };
 
+  // Show loading or redirect message if not authenticated or if admin/teacher
+  if (!currentUser || currentUser.role === "admin" || currentUser.role === "teacher") {
+    return (
+      <div className="p-3 max-w-2xl mx-auto">
+        <p className="text-center text-gray-600">
+          {!currentUser ? "Redirecting to login..." : "Redirecting..."}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-3 max-w-2xl mx-auto">
       <h1 className="text-3xl text-center font-semibold my-7">
         Submit Feedback or Complaint
       </h1>
       <p className="text-center text-gray-600 mb-6">
-        Your feedback is important to us. Logged-in students can track progress, while
-        anonymous submissions remain private.
+        Your feedback is important to us. Please provide details to help us prioritize your complaint.
       </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -110,11 +124,29 @@ export default function SubmitComplaint() {
             id="category"
             value={formData.category}
             onChange={handleChange}
+            required
           >
+            <option value="bullying">Bullying</option>
             <option value="academic">Academic</option>
             <option value="facility">Facility</option>
             <option value="staff">Staff</option>
             <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">Urgency Level</label>
+          <select
+            className="border p-3 rounded-lg w-full"
+            id="urgency"
+            value={formData.urgency}
+            onChange={handleChange}
+            required
+          >
+            <option value="low">Low - Can wait a few days</option>
+            <option value="medium">Medium - Should be addressed soon</option>
+            <option value="high">High - Needs immediate attention</option>
+            <option value="critical">Critical - Emergency situation</option>
           </select>
         </div>
 
@@ -137,10 +169,9 @@ export default function SubmitComplaint() {
             checked={formData.isAnonymous}
             onChange={handleChange}
             className="w-4 h-4"
-            disabled={!currentUser}
           />
           <label htmlFor="isAnonymous" className="text-sm">
-            Submit anonymously {currentUser ? "(uncheck to track progress)" : "(sign in to track)"}
+            Submit anonymously (uncheck to track progress)
           </label>
         </div>
 

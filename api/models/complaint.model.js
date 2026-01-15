@@ -11,8 +11,18 @@ const complaintSchema = new mongoose.Schema({
     },
     category:{
         type: String,
-        enum: ['academic', 'facility', 'staff', 'other'],
+        enum: ['bullying', 'academic', 'facility', 'staff', 'other'],
         default: 'other',
+    },
+    urgency:{
+        type: String,
+        enum: ['low', 'medium', 'high', 'critical'],
+        default: 'medium',
+        required: true,
+    },
+    priorityScore:{
+        type: Number,
+        default: 0,
     },
     status:{
         type: String,

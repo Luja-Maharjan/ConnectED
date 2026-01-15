@@ -7,19 +7,59 @@ const statusStyles = {
   rejected: "bg-red-100 text-red-800",
 };
 
+const urgencyStyles = {
+  low: "bg-gray-100 text-gray-700",
+  medium: "bg-blue-100 text-blue-700",
+  high: "bg-orange-100 text-orange-700",
+  critical: "bg-red-100 text-red-700",
+};
+
+const priorityStyles = {
+  high: "bg-red-500 text-white",
+  medium: "bg-orange-500 text-white",
+  low: "bg-yellow-500 text-white",
+};
+
 const getStatusClass = (status) => statusStyles[status] || "bg-gray-100 text-gray-800";
+const getUrgencyClass = (urgency) => urgencyStyles[urgency] || "bg-gray-100 text-gray-700";
+
+const getPriorityLevel = (score) => {
+  if (score >= 100) return { level: "high", label: "High Priority" };
+  if (score >= 50) return { level: "medium", label: "Medium Priority" };
+  return { level: "low", label: "Low Priority" };
+};
 
 const ComplaintCard = ({ complaint, showUserInfo = false, children }) => {
+  const priorityInfo = complaint.priorityScore !== undefined 
+    ? getPriorityLevel(complaint.priorityScore)
+    : null;
+
   return (
     <div className="border rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow bg-white">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
-        <div>
+        <div className="flex-1">
           <h3 className="text-xl font-semibold">{complaint.title}</h3>
-          <p className="text-gray-600">{complaint.category}</p>
+          <div className="flex flex-wrap items-center gap-2 mt-1">
+            <span className="text-gray-600 capitalize">{complaint.category}</span>
+            {complaint.urgency && (
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getUrgencyClass(complaint.urgency)}`}>
+                {complaint.urgency}
+              </span>
+            )}
+          </div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(complaint.status)}`}>
-          {complaint.status}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          {priorityInfo && (
+            <div className="flex flex-col items-end">
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${priorityStyles[priorityInfo.level]}`}>
+                Priority: {complaint.priorityScore}
+              </span>
+            </div>
+          )}
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(complaint.status)}`}>
+            {complaint.status}
+          </span>
+        </div>
       </div>
 
       <p className="text-gray-700 mb-3">{complaint.description}</p>

@@ -32,14 +32,16 @@ const Header = () => {
               </Link>
             </li>
 
-            <li>
-              <Link
-                to="/submit-complaint"
-                className="text-slate-700 hover:underline"
-              >
-                Submit Complaint
-              </Link>
-            </li>
+            {currentUser?.role !== "admin" && currentUser?.role !== "teacher" && (
+              <li>
+                <Link
+                  to="/submit-complaint"
+                  className="text-slate-700 hover:underline"
+                >
+                  Submit Complaint
+                </Link>
+              </li>
+            )}
 
             {currentUser?.role === "admin" && (
               <li>
