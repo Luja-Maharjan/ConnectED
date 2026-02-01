@@ -16,7 +16,7 @@ export default function Home() {
         return;
       }
       const endpoint =
-        currentUser.role === "admin"
+        currentUser.role === "teacher"
           ? "/api/complaint/all"
           : "/api/complaint/my-complaints";
       try {
@@ -48,7 +48,7 @@ export default function Home() {
           A safe space to submit feedback, report issues anonymously, and track progress.
         </p>
         <div className="flex flex-wrap gap-4 justify-center">
-          {currentUser?.role !== "admin" && currentUser?.role !== "teacher" && (
+          {currentUser?.role !== "teacher" && (
             <Link
               to="/submit-complaint"
               className="bg-slate-700 text-white px-6 py-2 rounded-lg hover:opacity-95"
@@ -91,7 +91,7 @@ export default function Home() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-semibold">
-            {currentUser?.role === "admin" ? "All Complaints" : "Your Complaints"}
+            {currentUser?.role === "teacher" ? "All Complaints" : "Your Complaints"}
           </h2>
           {currentUser && (
             <p className="text-sm text-gray-500">
@@ -120,7 +120,7 @@ export default function Home() {
           <p className="text-red-600">{error}</p>
         ) : complaints.length === 0 ? (
           <div className="border rounded-lg p-6 text-center text-gray-600">
-            {currentUser.role === "admin"
+            {currentUser.role === "teacher"
               ? "No complaints submitted yet."
               : "You haven't submitted any complaints yet."}
           </div>
@@ -130,7 +130,7 @@ export default function Home() {
               <ComplaintCard
                 key={complaint._id}
                 complaint={complaint}
-                showUserInfo={currentUser.role === "admin"}
+                showUserInfo={currentUser.role === "teacher"}
               />
             ))}
           </div>

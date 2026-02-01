@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 
@@ -8,7 +8,24 @@ export default function SignUp() {
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [teacherExists, setTeacherExists] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkTeacherExists = async () => {
+      try {
+        const res = await fetch("/api/auth/teacher-exists", { credentials: "include" });
+        const data = await res.json();
+        if (data.success && data.teacherExists) {
+          setTeacherExists(true);
+          setFormData((prev) => (prev.role === 'teacher' ? { ...prev, role: 'student' } : prev));
+        }
+      } catch {
+        // Ignore - teacher option remains available, backend will block if needed
+      }
+    };
+    checkTeacherExists();
+  }, []);
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -85,8 +102,11 @@ export default function SignUp() {
             required
           >
             <option value="student">Student</option>
-            <option value="admin">Admin</option>
+            {!teacherExists && <option value="teacher">Teacher</option>}
           </select>
+          {teacherExists && (
+            <p className="text-sm text-gray-500 mt-1">Teacher registration is closed (one teacher already exists).</p>
+          )}
         </div>
 
         <button

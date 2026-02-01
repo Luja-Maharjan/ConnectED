@@ -12,8 +12,16 @@ export const signup = async (req, res, next) =>{
     }
     
     // Validate role if provided
-    if (role && !['admin', 'student'].includes(role)) {
-        return next(errorHandler(400, 'Invalid role. Must be admin or student.'));
+    if (role && !['student', 'teacher'].includes(role)) {
+        return next(errorHandler(400, 'Invalid role. Must be student or teacher.'));
+    }
+
+    // Only one teacher account allowed - block if teacher already exists
+    if (role === 'teacher') {
+        const existingTeacher = await User.findOne({ role: 'teacher' });
+        if (existingTeacher) {
+            return next(errorHandler(403, 'A teacher account already exists. Only one teacher is allowed in the system.'));
+        }
     }
     
     const hashedPassword = bcryptjs.hashSync(password, 10);
@@ -74,6 +82,18 @@ export const getCurrentUser = async (req, res, next) => {
         res.status(200).json({
             success: true,
             user,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const teacherExists = async (req, res, next) => {
+    try {
+        const count = await User.countDocuments({ role: 'teacher' });
+        res.status(200).json({
+            success: true,
+            teacherExists: count > 0,
         });
     } catch (error) {
         next(error);

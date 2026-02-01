@@ -16,11 +16,11 @@ export default function SubmitComplaint() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Redirect to login if not authenticated, or redirect admin/teacher
+  // Redirect to login if not authenticated, or redirect teacher
   useEffect(() => {
     if (!currentUser) {
       navigate("/sign-in");
-    } else if (currentUser.role === "admin" || currentUser.role === "teacher") {
+    } else if (currentUser.role === "teacher") {
       navigate("/");
     }
   }, [currentUser, navigate]);
@@ -83,8 +83,8 @@ export default function SubmitComplaint() {
     }
   };
 
-  // Show loading or redirect message if not authenticated or if admin/teacher
-  if (!currentUser || currentUser.role === "admin" || currentUser.role === "teacher") {
+  // Show loading or redirect message if not authenticated or if teacher
+  if (!currentUser || currentUser.role === "teacher") {
     return (
       <div className="p-3 max-w-2xl mx-auto">
         <p className="text-center text-gray-600">

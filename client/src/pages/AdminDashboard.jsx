@@ -27,7 +27,7 @@ export default function AdminDashboard() {
 
       if (!res.ok || data.success === false) {
         if (res.status === 401 || res.status === 403) {
-          setError("Access denied. Admin access required.");
+          setError("Access denied. Teacher access required.");
           setTimeout(() => navigate("/sign-in"), 2000);
         } else {
           setError(data.message || "Failed to fetch complaints");
